@@ -1,0 +1,266 @@
+# Documentación API de Términos Procesales Administrativos
+
+## Descripción General
+
+Esta API proporciona servicios para el cálculo automático de términos procesales administrativos en Colombia, específicamente orientado a trámites relacionados con servicios públicos domiciliarios. La API permite calcular fechas clave para diferentes tipos de acciones administrativas y jurisdiccionales de acuerdo con la legislación colombiana.
+
+## Información Base
+
+- **URL Base**: `http://[host]:[puerto]`
+- **Protocolo**: HTTP/HTTPS
+- **Formato de Respuesta**: JSON
+- **Puerto Predeterminado**: 3000
+
+## Autenticación
+
+Actualmente, la API no requiere autenticación.
+
+## Rutas Disponibles
+
+### 1. Verificación de Estado
+
+Permite comprobar si el servicio está funcionando correctamente.
+
+- **Endpoint**: `/health`
+- **Método**: GET
+- **Parámetros**: Ninguno
+- **Respuesta Exitosa**:
+  ```json
+  {
+    "status": "ok",
+    "message": "Servidor de términos procesales activo",
+    "version": "1.0.0"
+  }
+  ```
+
+### 2. Tipos de Acciones Disponibles
+
+Devuelve la lista de todas las acciones administrativas y jurisdiccionales admitidas por la API.
+
+- **Endpoint**: `/tipos`
+- **Método**: GET
+- **Parámetros**: Ninguno
+- **Respuesta Exitosa**:
+  ```json
+  {
+    "tiposAcciones": [
+      "PETICION", "PETICION_INFO", "CONSULTA", "QUEJA", "RECLAMO", 
+      "REPOSICION", "APELACION", "RECURSO_QUEJA", "TUTELA", 
+      "NULIDAD", "NULIDAD_RESTABLECIMIENTO", "CUMPLIMIENTO"
+    ]
+  }
+  ```
+
+### 3. Cálculo de Términos
+
+Calcula los términos procesales para una acción específica, basado en la fecha proporcionada o utilizando la fecha actual por defecto.
+
+- **Endpoint**: `/calcular`
+- **Método**: POST
+- **Encabezados**:
+  - Content-Type: application/json
+- **Cuerpo de la Solicitud**:
+  ```json
+  {
+    "tipoAccion": "TIPO_DE_ACCION",
+    "fechaInicial": "YYYY-MM-DD"  // Opcional
+  }
+  ```
+- **Parámetros**:
+  - `tipoAccion` (obligatorio): El tipo de acción para la cual se calcularán los términos.
+  - `fechaInicial` (opcional): Fecha de inicio en formato YYYY-MM-DD. Si no se proporciona, se utilizará la fecha actual.
+
+## Tipos de Acciones y sus Respuestas
+
+A continuación se describen los diferentes tipos de acciones disponibles y la estructura de sus respuestas:
+
+### 1. PETICION, PETICION_INFO, CONSULTA, QUEJA, RECLAMO
+
+Estos tipos de acciones comparten la misma estructura de respuesta:
+
+```json
+{
+  "fechaInicial": "YYYY-MM-DD",
+  "fechaLimiteRespuesta": "YYYY-MM-DD",
+  "fechaReconocimientoSilencio": "YYYY-MM-DD",
+  "fundamentoJuridico": "Artículo 158 de la Ley 142 de 1994.",
+  "tipo": "TIPO_DE_ACCION",
+  "descripcion": "Descripción detallada de la acción y sus términos..."
+}
+```
+
+### 2. REPOSICION, APELACION
+
+Estos recursos comparten la misma estructura de respuesta:
+
+```json
+{
+  "fechaInicial": "YYYY-MM-DD",
+  "fechaLimitePresentacion": "YYYY-MM-DD",
+  "fechaInicialDePresentacion": "YYYY-MM-DD",
+  "fechaLimiteDecision": "YYYY-MM-DD",
+  "fechaReconocimientoSilencio": "YYYY-MM-DD",
+  "descripcion": "Descripción detallada del recurso y sus términos...",
+  "fundamentoJuridico": "Artículo 158 de la Ley 142 de 1994.",
+  "tipo": "TIPO_DE_ACCION"
+}
+```
+
+### 3. RECURSO_QUEJA
+
+```json
+{
+  "tipo": "RECURSO_QUEJA",
+  "fechaRechazoApelacion": "YYYY-MM-DD",
+  "fechaInicialDePresentacion": "YYYY-MM-DD",
+  "fechaLimitePresentacionQueja": "YYYY-MM-DD",
+  "descripcion": "Descripción detallada del recurso de queja y sus términos...",
+  "fundamentoJuridico": "Ley 142 de 1994 como régimen especial, con aplicación subsidiaria del CPACA (Ley 1437 de 2011)."
+}
+```
+
+### 4. TUTELA
+
+```json
+{
+  "tipo": "TUTELA",
+  "fechaInicial": "YYYY-MM-DD",
+  "fechaPresentacion": "YYYY-MM-DD",
+  "fechaLimiteDecision": "YYYY-MM-DD",
+  "fechaLimiteImpugnacion": "YYYY-MM-DD",
+  "descripcion": "Descripción detallada de la acción de tutela y sus términos...",
+  "fundamentoJuridico": "Articulo 86 Constitución Política de Colombia, Decreto 2591 de 1991 que reglamenta la acción de tutela."
+}
+```
+
+### 5. NULIDAD
+
+```json
+{
+  "tipo": "NULIDAD",
+  "descripcion": "Descripción detallada de la acción de nulidad y sus características...",
+  "fundamentoJuridico": "Fundamento normativo\n* Código de Procedimiento Administrativo y de lo Contencioso Administrativo (Ley 1437 de 2011)\n* Jurisprudencia del Consejo de Estado, especialmente la \"teoría de móviles y finalidades\""
+}
+```
+
+### 6. NULIDAD_RESTABLECIMIENTO
+
+```json
+{
+  "tipo": "NULIDAD_RESTABLECIMIENTO",
+  "inicioTerminoDeLaAccion": "YYYY-MM-DD",
+  "fechaCaducidad": "YYYY-MM-DD",
+  "descripcion": "Descripción detallada de la acción de nulidad y restablecimiento del derecho...",
+  "fundamentoJuridico": "CPACA (Ley 1437 de 2011), Art. 138."
+}
+```
+
+### 7. CUMPLIMIENTO
+
+```json
+{
+  "tipo": "CUMPLIMIENTO",
+  "fechaConstitucioEnRenuencia": "YYYY-MM-DD",
+  "fechaConfiguracionRenuencia": "YYYY-MM-DD",
+  "fechaLimitePresentacionAccion": "YYYY-MM-DD",
+  "descripcion": "Descripción detallada de la acción de cumplimiento y sus términos...",
+  "fundamentoJuridico": "Ley 393 de 1997."
+}
+```
+
+## Códigos de Respuesta HTTP
+
+- **200 OK**: La solicitud se completó exitosamente.
+- **400 Bad Request**: La solicitud tiene un formato incorrecto o falta un parámetro obligatorio.
+- **500 Internal Server Error**: Se produjo un error en el servidor al procesar la solicitud.
+
+## Errores
+
+### Error por tipo de acción no especificado
+```json
+{
+  "error": "Debe especificar un tipo de acción",
+  "campo": "tipoAccion"
+}
+```
+
+### Error por tipo de acción no reconocido
+```json
+{
+  "error": "Tipo de acción \"XYZ\" no reconocido",
+  "tiposValidos": "PETICION, PETICION_INFO, CONSULTA, QUEJA, RECLAMO, REPOSICION, APELACION, RECURSO_QUEJA, TUTELA, NULIDAD, NULIDAD_RESTABLECIMIENTO, CUMPLIMIENTO"
+}
+```
+
+### Error de procesamiento general
+```json
+{
+  "error": "Error al procesar la consulta: [mensaje de error]"
+}
+```
+
+## Ejemplos de Uso
+
+### Ejemplo 1: Cálculo de términos para una petición con fecha específica
+
+**Solicitud**:
+```bash
+curl -X POST http://localhost:3000/calcular \
+  -H "Content-Type: application/json" \
+  -d '{"tipoAccion": "PETICION", "fechaInicial": "2025-05-20"}'
+```
+
+**Respuesta**:
+```json
+{
+  "fechaInicial": "2025-05-20",
+  "fechaLimiteRespuesta": "2025-06-11",
+  "fechaReconocimientoSilencio": "2025-06-14",
+  "fundamentoJuridico": "Artículo 158 de la Ley 142 de 1994.",
+  "tipo": "PETICION",
+  "descripcion": "El término para responder un derecho de petición general es de 15 días hábiles contados desde el mismo día de presentación. El silencio administrativo positivo en servicios públicos domiciliarios: Se configura automáticamente cuando la empresa no responde una PQR en los 15 días hábiles establecidos. No requiere elevar a escritura pública ni procedimientos especiales. La empresa debe reconocer sus efectos dentro de las 72 horas siguientes al vencimiento del plazo. Si la empresa no reconoce los efectos, el usuario puede solicitar sanciones a la Superintendencia. No opera si hay práctica de pruebas o si el usuario causó la demora."
+}
+```
+
+### Ejemplo 2: Cálculo de términos para un recurso de apelación (usando fecha actual)
+
+**Solicitud**:
+```bash
+curl -X POST http://localhost:3000/calcular \
+  -H "Content-Type: application/json" \
+  -d '{"tipoAccion": "APELACION"}'
+```
+
+**Respuesta**:
+```json
+{
+  "fechaInicial": "2025-04-30",
+  "fechaLimitePresentacion": "2025-05-07",
+  "fechaInicialDePresentacion": "2025-05-02",
+  "fechaLimiteDecision": "2025-05-23",
+  "fechaReconocimientoSilencio": "2025-05-26",
+  "descripcion": "El recurso debe presentarse dentro de los 5 días hábiles siguientes a la notificación, contados desde el mismo día en que se accede al documento (solo aplica para correo electrónico). La empresa tiene 15 días hábiles para resolverlo, contados desde el mismo día en que se presenta el recurso, y debe reconocer los efectos del silencio administrativo positivo dentro de las 72 horas siguientes al vencimiento del plazo.",
+  "fundamentoJuridico": "Artículo 158 de la Ley 142 de 1994.",
+  "tipo": "APELACION"
+}
+```
+
+## Consideraciones Adicionales
+
+### Días Hábiles y Festivos
+
+- El cálculo de términos procesales considera sólo días hábiles según la legislación colombiana.
+- La API incluye una lista de festivos para Colombia para los años 2024-2026.
+- Los sábados y domingos se consideran días no hábiles.
+
+### Zona Horaria
+
+- Todos los cálculos se realizan considerando la zona horaria de Colombia (UTC-5).
+
+### Formato de Fechas
+
+- Todas las fechas deben proporcionarse y se devuelven en formato ISO 8601: `YYYY-MM-DD`.
+
+## Notas Legales
+
+Esta API proporciona cálculos de términos procesales basados en la interpretación de la legislación colombiana vigente a la fecha de su desarrollo. No reemplaza el asesoramiento legal profesional. Los resultados deben ser verificados por profesionales del derecho antes de tomar decisiones legales basadas en ellos.
