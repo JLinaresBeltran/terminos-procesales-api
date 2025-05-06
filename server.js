@@ -206,7 +206,7 @@ const calculosBase = {
     // Fecha límite para presentar el recurso: 5 días hábiles
     const fechaLimiteRecurso = fechaUtils.agregarDiasHabiles(fechaBase, 5, true);
     
-    // Día siguiente hábil para iniciar presentación
+    // Día siguiente hábil para iniciar presentación (solo se usa en APELACION, no en REPOSICION)
     const fechaInicialDePresentacion = fechaUtils.obtenerDiaSiguienteHabil(fechaBase);
     
     // 15 días hábiles para decisión desde la presentación
@@ -281,62 +281,88 @@ const calculadorTerminos = {
     };
   },
   
-  // Recurso de reposición
+  // Recurso de reposición - MODIFICADO según lo solicitado
   REPOSICION(fechaBase) {
-    const base = calculosBase.recursoBase(fechaBase);
+    // Normalizar fecha base a día hábil si es necesario
+    if (!fechaUtils.esDiaHabil(fechaBase)) {
+      fechaBase = fechaUtils.obtenerSiguienteDiaHabil(fechaBase);
+    }
+    
+    // Fecha límite para presentar el recurso: 5 días hábiles
+    const fechaLimiteRecurso = fechaUtils.agregarDiasHabiles(fechaBase, 5, true);
+    
+    // 15 días hábiles para decisión desde la fechaLimitePresentacion (modificado según requerimiento)
+    const fechaDecision = fechaUtils.agregarDiasHabiles(fechaLimiteRecurso, 15, true);
+    
+    // 3 días para reconocimiento de silencio positivo
+    const fechaReconocimientoSilencio = fechaUtils.agregarDias(fechaDecision, 3);
+    
     return {
-      ...base,
-      tipo: TIPOS_ACCIONES.REPOSICION
+      tipo: TIPOS_ACCIONES.REPOSICION,
+      fechaInicial: fechaUtils.formatoFecha(fechaBase),
+      fechaLimitePresentacion: fechaUtils.formatoFecha(fechaLimiteRecurso),
+      fechaLimiteDecision: fechaUtils.formatoFecha(fechaDecision),
+      fechaReconocimientoSilencio: fechaUtils.formatoFecha(fechaReconocimientoSilencio),
+      descripcion: DESCRIPCIONES.recursos,
+      fundamentoJuridico: 'Artículo 158 de la Ley 142 de 1994.'
     };
   },
   
-  // Apelación
+  // Apelación - MODIFICADO igual que REPOSICION
   APELACION(fechaBase) {
-    const base = calculosBase.recursoBase(fechaBase);
+    // Normalizar fecha base a día hábil si es necesario
+    if (!fechaUtils.esDiaHabil(fechaBase)) {
+      fechaBase = fechaUtils.obtenerSiguienteDiaHabil(fechaBase);
+    }
+    
+    // Fecha límite para presentar el recurso: 5 días hábiles
+    const fechaLimiteRecurso = fechaUtils.agregarDiasHabiles(fechaBase, 5, true);
+    
+    // 15 días hábiles para decisión desde la fechaLimitePresentacion (modificado según requerimiento)
+    const fechaDecision = fechaUtils.agregarDiasHabiles(fechaLimiteRecurso, 15, true);
+    
+    // 3 días para reconocimiento de silencio positivo
+    const fechaReconocimientoSilencio = fechaUtils.agregarDias(fechaDecision, 3);
+    
     return {
-      ...base,
-      tipo: TIPOS_ACCIONES.APELACION
+      tipo: TIPOS_ACCIONES.APELACION,
+      fechaInicial: fechaUtils.formatoFecha(fechaBase),
+      fechaLimitePresentacion: fechaUtils.formatoFecha(fechaLimiteRecurso),
+      fechaLimiteDecision: fechaUtils.formatoFecha(fechaDecision),
+      fechaReconocimientoSilencio: fechaUtils.formatoFecha(fechaReconocimientoSilencio),
+      descripcion: DESCRIPCIONES.recursos,
+      fundamentoJuridico: 'Artículo 158 de la Ley 142 de 1994.'
     };
   },
   
-  // Recurso de queja
+  // Recurso de queja - MODIFICADO para eliminar fechaInicialDePresentacion
   RECURSO_QUEJA(fechaBase) {
     // Normalizar fecha base a día hábil si es necesario
     if (!fechaUtils.esDiaHabil(fechaBase)) {
       fechaBase = fechaUtils.obtenerSiguienteDiaHabil(fechaBase);
     }
     
-    // Día siguiente hábil para inicio de presentación
-    const fechaInicialDePresentacion = fechaUtils.obtenerDiaSiguienteHabil(fechaBase);
-    
-    // 5 días hábiles para presentar la queja
-    const fechaLimiteQueja = fechaUtils.agregarDiasHabiles(fechaInicialDePresentacion, 5, true);
+    // 5 días hábiles para presentar la queja desde la fecha de rechazo
+    const fechaLimiteQueja = fechaUtils.agregarDiasHabiles(fechaBase, 5, true);
     
     return {
       tipo: TIPOS_ACCIONES.RECURSO_QUEJA,
       fechaRechazoApelacion: fechaUtils.formatoFecha(fechaBase),
-      fechaInicialDePresentacion: fechaUtils.formatoFecha(fechaInicialDePresentacion),
       fechaLimitePresentacionQueja: fechaUtils.formatoFecha(fechaLimiteQueja),
       descripcion: 'El recurso de queja es un mecanismo facultativo, procede cuando las empresas prestadoras rechazan un recurso de apelación sobre actos de negación, terminación, suspensión, corte o facturación del servicio. Debe interponerse dentro de los cinco días hábiles siguientes a la notificación del rechazo, siendo la Superintendencia de Servicios Públicos quien resuelve en quince días hábiles, plazo que puede suspenderse hasta treinta días por práctica de pruebas. Opera con efecto devolutivo (no suspende automáticamente el acto impugnado), aunque puede solicitarse la suspensión en casos de posible daño irreparable, y su resolución puede confirmar el acto, revocar lo ordenando, revisión de la apelación, o exigir subsanación de defectos procedimentales.',
       fundamentoJuridico: 'Ley 142 de 1994 como régimen especial, con aplicación subsidiaria del CPACA (Ley 1437 de 2011).'
     };
   },
   
-  // Acción de tutela
+  // Acción de tutela - MODIFICADO para eliminar fechaPresentacion
   TUTELA(fechaBase) {
     // Normalizar fecha base a día hábil si es necesario
     if (!fechaUtils.esDiaHabil(fechaBase)) {
       fechaBase = fechaUtils.obtenerSiguienteDiaHabil(fechaBase);
     }
     
-    // Día siguiente hábil para presentación
-    const fechaPresentacion = fechaUtils.obtenerDiaSiguienteHabil(fechaBase);
-    
-    // Día siguiente hábil para inicio del conteo de decisión
-    const inicioCuentaDecision = fechaUtils.obtenerDiaSiguienteHabil(fechaPresentacion);
-    
-    // 10 días hábiles para decisión
-    const fechaLimiteDecision = fechaUtils.agregarDiasHabiles(inicioCuentaDecision, 10, true);
+    // 10 días hábiles para decisión desde la fecha base
+    const fechaLimiteDecision = fechaUtils.agregarDiasHabiles(fechaBase, 10, true);
     
     // Día siguiente hábil para inicio de impugnación
     const inicioImpugnacion = fechaUtils.obtenerDiaSiguienteHabil(fechaLimiteDecision);
@@ -347,7 +373,6 @@ const calculadorTerminos = {
     return {
       tipo: TIPOS_ACCIONES.TUTELA,
       fechaInicial: fechaUtils.formatoFecha(fechaBase),
-      fechaPresentacion: fechaUtils.formatoFecha(fechaPresentacion),
       fechaLimiteDecision: fechaUtils.formatoFecha(fechaLimiteDecision),
       fechaLimiteImpugnacion: fechaUtils.formatoFecha(fechaLimiteImpugnacion),
       descripcion: "La acción de tutela en el ámbito de servicios públicos colombianos constituye un mecanismo de protección que procede cuando la prestación o suspensión de servicios vulnera derechos fundamentales, especialmente en casos de suspensión de servicios esenciales a personas vulnerables, violación al derecho de petición o irregularidades administrativas. Aunque no tiene un término de caducidad específico, se aplica el criterio jurisprudencial de inmediatez con un plazo razonable aproximado de seis meses, resolviendo el juez en máximo diez días hábiles y permitiendo impugnación dentro de los tres días siguientes a la notificación. Sus efectos pueden ser determinantes: desde ordenar la reconexión inmediata de servicios, exigir respuestas de fondo a peticiones, rectificar procedimientos administrativos irregulares, hasta garantizar atención adecuada en canales digitales, siendo particularmente importante para la protección de poblaciones vulnerables.",
@@ -403,7 +428,7 @@ const calculadorTerminos = {
     };
   },
   
-  // Acción de cumplimiento
+  // Acción de cumplimiento - MODIFICADO según requerimientos
   CUMPLIMIENTO(fechaBase) {
     // Normalizar fecha base a día hábil si es necesario
     if (!fechaUtils.esDiaHabil(fechaBase)) {
@@ -413,17 +438,13 @@ const calculadorTerminos = {
     // Día siguiente hábil para inicio del conteo
     const fechaSiguiente = fechaUtils.obtenerDiaSiguienteHabil(fechaBase);
     
-    // 10 días hábiles para configuración de renuencia
-    const fechaLimiteRenuencia = fechaUtils.agregarDiasHabiles(fechaSiguiente, 10, true);
-    
-    // 30 días calendario para presentación de la acción
-    const fechaLimiteAccion = fechaUtils.agregarDias(fechaLimiteRenuencia, 30);
+    // 10 días hábiles para configuración de renuencia desde el día siguiente
+    const fechaConfiguracionRenuencia = fechaUtils.agregarDiasHabiles(fechaSiguiente, 10, true);
     
     return {
       tipo: TIPOS_ACCIONES.CUMPLIMIENTO,
-      fechaConstitucioEnRenuencia: fechaUtils.formatoFecha(fechaBase),
-      fechaConfiguracionRenuencia: fechaUtils.formatoFecha(fechaLimiteRenuencia),
-      fechaLimitePresentacionAccion: fechaUtils.formatoFecha(fechaLimiteAccion),
+      fechaRadicacionRenuencia: fechaUtils.formatoFecha(fechaBase),
+      fechaConfiguracionRenuencia: fechaUtils.formatoFecha(fechaConfiguracionRenuencia),
       descripcion: 'La acción de cumplimiento es un mecanismo constitucional que permite exigir judicialmente el cumplimiento de leyes o actos administrativos, en el ámbito de los servicios públicos domiciliarios. El principal requisito de procedibilidad es la constitución de la renuencia mediante solicitud formal a la autoridad, configurándose cuando esta ratifica su incumplimiento o no responde dentro de diez días hábiles a la solicitud. Este requisito puede omitirse excepcionalmente ante peligro inminente de perjuicio irremediable. La acción debe identificar claramente la norma incumplida con mandato imperativo. No procede cuando el afectado disponga de otro instrumento judicial para lograr el cumplimiento, cuando se busque el cumplimiento de normas que establezcan gastos, o cuando el derecho pueda garantizarse mediante acción de tutela. A diferencia de otros procesos contencioso-administrativos, no es necesario agotar la conciliación.',
       fundamentoJuridico: 'Ley 393 de 1997.'
     };
